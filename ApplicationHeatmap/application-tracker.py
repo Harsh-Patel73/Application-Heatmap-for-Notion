@@ -57,11 +57,13 @@ def count_per_day(applications):
 # -----------------------------
 # Draw interactive GitHub-style grid
 # -----------------------------
-def draw_interactive_grid(counts, output_path="interactive_grid.html"):
+def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_grid.html"):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
     today = datetime.date.today()
-    start_date = today - datetime.timedelta(weeks=10)
-    dates = [start_date + datetime.timedelta(days=i) for i in range((today - start_date).days + 1)]
-    total_weeks = (len(dates) + 6) // 7  # ceiling division
+    start_date = today - datetime.timedelta(days=59)  # last 60 days including today
+    dates = [start_date + datetime.timedelta(days=i) for i in range(60)]
+    total_weeks = (len(dates) + 6) // 7  # ceiling division for grid layout
 
     # Prepare z-values (numeric) and hover text
     z = [[0 for _ in range(total_weeks)] for _ in range(7)]
@@ -70,16 +72,11 @@ def draw_interactive_grid(counts, output_path="interactive_grid.html"):
     for i, d in enumerate(dates):
         week_idx = i // 7
         day_idx = d.weekday()  # Monday=0
-        if d > today:
-            val = 0  # future day = 0
-            hover_text[day_idx][week_idx] = f"{d}: 0 applications"
-        else:
-            val = counts.get(d.isoformat(), 0)
-            hover_text[day_idx][week_idx] = f"{d}: {val} application{'s' if val != 1 else ''}"
+        val = counts.get(d.isoformat(), 0)
+        hover_text[day_idx][week_idx] = f"{d}: {val} application{'s' if val != 1 else ''}"
         z[day_idx][week_idx] = val
 
     # Define discrete colorscale for GitHub-style
-    # Map: 0=future gray, 1-9=red, 10-24=yellow, 25+=green
     def discrete_colorscale(val):
         if val == 0:
             return 0
@@ -93,7 +90,7 @@ def draw_interactive_grid(counts, output_path="interactive_grid.html"):
     z_colors = [[discrete_colorscale(z[y][x]) for x in range(total_weeks)] for y in range(7)]
 
     colorscale = [
-        [0, '#ebedf0'],   # gray for 0 (future or no apps)
+        [0, '#ebedf0'],    # gray
         [0.25, '#e74c3c'], # red <10
         [0.5, '#f1c40f'],  # yellow 10-24
         [1, '#2ecc71']     # green 25+
@@ -123,8 +120,8 @@ def draw_interactive_grid(counts, output_path="interactive_grid.html"):
         plot_bgcolor='rgba(0,0,0,0)'
     )
 
-
-    fig.write_html(output_path)
+    # Save HTML without mode bar
+    fig.write_html(output_path, include_plotlyjs='cdn', full_html=True, config={'displayModeBar': False})
     print(f"Interactive grid saved to {output_path}")
 
 # -----------------------------
