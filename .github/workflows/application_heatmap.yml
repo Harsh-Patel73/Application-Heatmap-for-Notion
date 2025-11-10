@@ -37,7 +37,8 @@ jobs:
 
       # 5. Upload HTML artifact (updated to v4)
       - name: Upload HTML artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@9b6f465fbbcccfb8c67ceae6c0a88c47c2b8f953 # v4.3.0
+
         with:
           name: interactive-grid
           path: interactive_grid.html
