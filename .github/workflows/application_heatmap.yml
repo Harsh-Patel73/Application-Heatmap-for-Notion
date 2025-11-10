@@ -38,7 +38,7 @@ jobs:
       - name: Prepare deploy folder
         run: |
           mkdir -p deploy
-          cp ApplicationHeatmap/interactive_grid.html deploy/index.html
+          cp ApplicationHeatmap/interactive_grid.html index.html
 
       # 6. Upload HTML artifact (optional, for debugging)
       - name: Upload HTML artifact
@@ -52,4 +52,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./deploy
+          publish_dir: ./
