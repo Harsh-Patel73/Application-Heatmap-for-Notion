@@ -1,12 +1,13 @@
 import requests
 import datetime
 import os
+import calendar
 from dotenv import load_dotenv
 import plotly.graph_objects as go
 from dateutil.parser import isoparse
 
-# Load environment variables
 load_dotenv()
+
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 
@@ -20,9 +21,6 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-# ---------------------------
-# Fetch applications from Notion
-# ---------------------------
 def get_applications():
     all_results = []
     has_more = True
@@ -39,9 +37,6 @@ def get_applications():
         next_cursor = data.get("next_cursor")
     return all_results
 
-# ---------------------------
-# Count applications per day
-# ---------------------------
 def count_per_day(applications):
     counts = {}
     for app in applications:
@@ -54,30 +49,23 @@ def count_per_day(applications):
     print(f"[DEBUG] Daily counts: {counts}")
     return counts
 
-# ---------------------------
-# Draw interactive GitHub-style grid
-# ---------------------------
-# Draw interactive grid (updated version)
 def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_grid.html"):
-    import calendar
-
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     today = datetime.date.today()
-    start_date = today - datetime.timedelta(days=59)  # last 60 days
+    start_date = today - datetime.timedelta(days=59)
     dates = [start_date + datetime.timedelta(days=i) for i in range(60)]
-    total_weeks = (len(dates) + 6) // 7  # round up to full weeks
+    total_weeks = (len(dates) + 6) // 7
 
-    # Initialize z-values and hover text
+
     z = [[0 for _ in range(total_weeks)] for _ in range(7)]
     hover_text = [[None for _ in range(total_weeks)] for _ in range(7)]
 
-    # Fill z and hover_text
     for i, d in enumerate(dates):
         week_idx = i // 7
-        day_idx = d.weekday()  # Monday=0 ... Sunday=6
+        day_idx = d.weekday()
         val = counts.get(d.isoformat(), 0)
-        z[day_idx][week_idx] = min(val, 25)  # cap at 25
+        z[day_idx][week_idx] = min(val, 25)
         hover_text[day_idx][week_idx] = f"{d.strftime('%Y-%m-%d')}: {val} application{'s' if val != 1 else ''}"
 
     colorscale = [
@@ -87,7 +75,6 @@ def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_gr
         [1.0, "#2ecc71"]
     ]
 
-    # Plotly Heatmap
     fig = go.Figure(go.Heatmap(
         z=z,
         text=hover_text,
@@ -102,7 +89,6 @@ def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_gr
         zmax=25,
     ))
 
-    # Flip y-axis so Monday is at the top
     fig.update_yaxes(autorange="reversed", showgrid=False, zeroline=False)
     fig.update_xaxes(showgrid=False, zeroline=False, visible=True)
 
@@ -117,9 +103,6 @@ def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_gr
     fig.write_html(output_path, include_plotlyjs="cdn", full_html=True, config={"displayModeBar": False})
     print(f"Interactive grid saved to {output_path}")
 
-# ---------------------------
-# MAIN
-# ---------------------------
 if __name__ == "__main__":
     applications = get_applications()
     print(f"[DEBUG] Fetched {len(applications)} applications from Notion.")
