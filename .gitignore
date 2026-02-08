@@ -25,7 +25,7 @@ deploy/
 build/
 dist/
 
-# GitHub Pages output (if you generate files locally)
+# GitHub Pages output for the interactive heatmap
 ApplicationHeatmap/interactive_grid.html
 
 # Jupyter
@@ -34,3 +34,6 @@ ApplicationHeatmap/interactive_grid.html
 # Secrets (important!)
 *.env
 notion_token.txt
+
+# Documentation (local only)
+ARCHITECTURE.md
